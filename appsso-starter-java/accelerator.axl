@@ -1,0 +1,30 @@
+engine {
+    let artifactIdResourceName = artifactId.toLowerCase() in {
+        {
+            Include({"**"})
+            .Exclude({"catalog/*.yaml", "config/workload.yaml"})
+            +
+            Include({"catalog/*.yaml"})
+            .ReplaceText({{text: "appsso-starter-java", with: #artifactIdResourceName}})
+            +
+            Include({"config/workload.yaml"})
+            .ReplaceText( {
+                {text: "\n  name: appsso-starter-java", with: '\n  name: ${#artifactIdResourceName}'},
+                {text: "app.kubernetes.io/part-of: appsso-starter-java", with: 'app.kubernetes.io/part-of: ${#artifactIdResourceName}'}
+            })
+            +
+            Include({"README.md"})
+            .ReplaceText({{text: "<your-selected-appsso-offering>", with: #appssoOfferingName}})
+        }
+        {
+            InvokeFragment('build-wrapper-gradle')
+            +
+            InvokeFragment('tap-workload')
+            +
+            Include({"**"})
+        }.UniquePath()
+        {
+            Provenance()
+        }
+    }
+}
